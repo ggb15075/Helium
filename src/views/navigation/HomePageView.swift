@@ -101,9 +101,9 @@ struct HomePageView: View {
   }
 
   func toggleHUD(_ isActive: Bool) {
+    if isNowEnabled == isActive { return }
     inProgress.toggle()
     Haptic.shared.play(.medium)
-    if isNowEnabled == isActive { return }
     print(
       !isActive
         ? NSLocalizedString("Closing HUD", comment: "")
@@ -113,7 +113,7 @@ struct HomePageView: View {
     buttonDisabled = true
     waitForNotificationBridger(
       {
-        isNowEnabled = isActive
+        isNowEnabled = IsHUDEnabledBridger()
         buttonDisabled = false
         inProgress.toggle()
       }, !isNowEnabled)

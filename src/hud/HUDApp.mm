@@ -2,6 +2,10 @@
 #import <mach-o/dyld.h>
 #import <objc/runtime.h>
 
+#ifdef HELIUM_ROOTHIDE
+#import <roothide.h>
+#endif
+
 #import "HUDHelper.h"
 
 #import "../helpers/ts/TSEventFetcher.h"
@@ -111,6 +115,12 @@ int main(int argc, char *argv[])
         
         if (strcmp(argv[1], "-hud") == 0)
         {
+#ifdef HELIUM_ROOTHIDE
+            // A disabled launchd job must exit successfully so KeepAlive does not
+            // bring the HUD back after the user switches it off.
+            if (access(jbroot("/var/lib/helium/hud.disabled"), F_OK) == 0)
+                return EXIT_SUCCESS;
+#endif
             pid_t pid = getpid();
             pid_t pgid = getgid();
             (void)pgid;
@@ -149,13 +159,16 @@ int main(int argc, char *argv[])
             notify_register_dispatch("SBSpringBoardDidLaunchNotification", &_springboardBootToken, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0l), ^(int token) {
                 notify_cancel(token);
 
-                // Re-enable HUD after SpringBoard is launched.
+#ifndef HELIUM_ROOTHIDE
+                // TrollStore builds manage their own HUD process.
                 SetHUDEnabled(YES);
 
                 // Exit the current instance of HUD.
 #ifdef NOTIFY_DISMISSAL_HUD
                 notify_post(NOTIFY_DISMISSAL_HUD);
 #endif
+#endif
+                // The RootHide launchd job restarts the killed HUD instance.
                 kill(pid, SIGKILL);
             });
 

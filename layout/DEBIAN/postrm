@@ -9,4 +9,9 @@ case "${1:-}" in
         ;;
 esac
 
+if [ "${1:-}" = purge ]; then
+    rm -f /var/lib/helium/hud.disabled
+    rmdir /var/lib/helium 2>/dev/null || true
+fi
+
 exit 0

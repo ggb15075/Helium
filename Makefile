@@ -48,6 +48,9 @@ $(APPLICATION_NAME)_FILES += $(wildcard $(WIDGETS_DIR)/*.m)
 
 $(APPLICATION_NAME)_CFLAGS += -fobjc-arc -Iinclude
 $(APPLICATION_NAME)_CFLAGS += -include hud-prefix.pch -Wno-deprecated-declarations
+ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
+$(APPLICATION_NAME)_CFLAGS += -DHELIUM_ROOTHIDE=1
+endif
 $(APPLICATION_NAME)_SWIFTFLAGS += -import-objc-header src/bridging/Helium-Bridging-Header.h
 
 $(APPLICATION_NAME)_FRAMEWORKS += CoreGraphics QuartzCore UIKit Foundation

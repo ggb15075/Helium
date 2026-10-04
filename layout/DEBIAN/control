@@ -1,6 +1,6 @@
 Package: com.leemin.helium
 Name: Helium
-Version: 3.2.6-1
+Version: 3.2.6-2
 Section: Utilities
 Depends: firmware (>= 14.0)
 Architecture: iphoneos-arm64e

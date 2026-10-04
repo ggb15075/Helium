@@ -2,11 +2,49 @@
 set -e
 
 if [ "${1:-}" = configure ]; then
+    mkdir -p /var/lib/helium
+    chown mobile:mobile /var/lib/helium
+    chmod 0755 /var/lib/helium
+
+    if command -v launchctl >/dev/null 2>&1; then
+        domain=system
+        release=$(uname -r 2>/dev/null || true)
+        major=${release%%.*}
+        case "$major" in
+            ''|*[!0-9]*) ;;
+            *)
+                if [ "$major" -ge 22 ] && launchctl print user/foreground >/dev/null 2>&1; then
+                    domain=user/foreground
+                fi
+                ;;
+        esac
+
+        service=com.leemin.helium
+        plist=/Library/LaunchDaemons/com.leemin.helium.plist
+
+        # Retire the old job before reloading the installed executable.
+        launchctl bootout "$domain/$service" >/dev/null 2>&1 || true
+        if [ "$domain" != system ]; then
+            launchctl bootout "system/$service" >/dev/null 2>&1 || true
+        fi
+
+        # Earlier packages could leave manually spawned HUD copies behind.
+        if command -v killall >/dev/null 2>&1; then
+            killall -9 Helium >/dev/null 2>&1 || true
+        fi
+
+        if [ ! -e /var/lib/helium/hud.disabled ]; then
+            if ! launchctl bootstrap "$domain" "$plist"; then
+                if ! launchctl print "$domain/$service" >/dev/null 2>&1; then
+                    echo "Helium: failed to load the HUD service in $domain" >&2
+                    exit 1
+                fi
+            fi
+        fi
+    fi
+
     if command -v uicache >/dev/null 2>&1; then
         uicache -p /Applications/Helium.app || uicache -a || true
-    fi
-    if command -v launchctl >/dev/null 2>&1; then
-        launchctl bootstrap system /Library/LaunchDaemons/com.leemin.helium.plist || true
     fi
 fi
 

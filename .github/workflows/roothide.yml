@@ -52,7 +52,14 @@ jobs:
           deb=$(find packages -maxdepth 1 -name '*_iphoneos-arm64e.deb' -print -quit)
           test -n "$deb"
           test "$(dpkg-deb -f "$deb" Architecture)" = 'iphoneos-arm64e'
-          test "$(dpkg-deb -f "$deb" Version)" = '3.2.6-1'
+          test "$(dpkg-deb -f "$deb" Version)" = '3.2.6-2'
+          control="$RUNNER_TEMP/helium-control"
+          mkdir -p "$control"
+          dpkg-deb -e "$deb" "$control"
+          for script in postinst prerm postrm; do
+            test -x "$control/$script"
+            sh -n "$control/$script"
+          done
           extracted="$RUNNER_TEMP/helium-deb"
           mkdir -p "$extracted"
           dpkg-deb -x "$deb" "$extracted"
@@ -70,4 +77,3 @@ jobs:
           name: Helium-RootHide-deb
           path: packages/*_iphoneos-arm64e.deb
           if-no-files-found: error
-

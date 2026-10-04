@@ -1,8 +1,31 @@
 #!/bin/sh
 set -e
 
-if command -v launchctl >/dev/null 2>&1; then
-    launchctl bootout system/com.leemin.helium || true
-fi
+case "${1:-}" in
+    remove|upgrade|deconfigure)
+        if command -v launchctl >/dev/null 2>&1; then
+            domain=system
+            release=$(uname -r 2>/dev/null || true)
+            major=${release%%.*}
+            case "$major" in
+                ''|*[!0-9]*) ;;
+                *)
+                    if [ "$major" -ge 22 ] && launchctl print user/foreground >/dev/null 2>&1; then
+                        domain=user/foreground
+                    fi
+                    ;;
+            esac
+
+            service=com.leemin.helium
+            launchctl bootout "$domain/$service" >/dev/null 2>&1 || true
+            if [ "$domain" != system ]; then
+                launchctl bootout "system/$service" >/dev/null 2>&1 || true
+            fi
+        fi
+        if command -v killall >/dev/null 2>&1; then
+            killall -9 Helium >/dev/null 2>&1 || true
+        fi
+        ;;
+esac
 
 exit 0
