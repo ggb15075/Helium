@@ -66,6 +66,7 @@ jobs:
           test -x "$extracted/Applications/Helium.app/Helium"
           test -f "$extracted/Applications/Helium.app/Info.plist"
           test -f "$extracted/Library/LaunchDaemons/com.leemin.helium.plist"
+          otool -L "$extracted/Applications/Helium.app/Helium" | grep -Fq '@loader_path/.jbroot/usr/lib/libroothide.dylib'
           ldid -e "$extracted/Applications/Helium.app/Helium" > "$RUNNER_TEMP/helium-entitlements.plist"
           for entitlement in platform-application com.apple.private.security.no-sandbox com.apple.private.security.storage.AppBundles com.apple.private.security.storage.AppDataContainers; do
             grep -q "<key>$entitlement</key>" "$RUNNER_TEMP/helium-entitlements.plist"
