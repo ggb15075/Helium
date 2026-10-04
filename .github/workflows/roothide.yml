@@ -1,0 +1,54 @@
+name: Build RootHide deb
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - roothide-build
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Check out Helium
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
+      - name: Install build tools
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install dpkg ldid make libplist openssl@3
+          echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Check out RootHide Theos
+        uses: actions/checkout@v4
+        with:
+          repository: roothide/theos
+          ref: 88506b2c22e9e07dd4ed055f23c9e398a117a2c7
+          path: theos
+          submodules: recursive
+
+      - name: Replace bundled SDK directory
+        run: rm -rf "$GITHUB_WORKSPACE/theos/sdks"
+
+      - name: Check out iOS SDKs
+        uses: actions/checkout@v4
+        with:
+          repository: theos/sdks
+          ref: 0222fd5413cf4b9af096f37b4621afa2688572f7
+          path: theos/sdks
+
+      - name: Build RootHide package
+        env:
+          THEOS: ${{ github.workspace }}/theos
+        run: sh build-roothide.sh
+
+      - name: Upload RootHide deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: Helium-RootHide-deb
+          path: packages/*_iphoneos-arm64e.deb
+          if-no-files-found: error

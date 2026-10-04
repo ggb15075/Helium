@@ -1,10 +1,9 @@
 Package: com.leemin.helium
 Name: Helium
-Version: 1.0
-Section: Tweaks
-Depends: firmware (>= 13.0), mobilesubstrate (>= 0.9.7000), com.rpetrich.rocketbootstrap (>= 1.0.9)
-Architecture: iphoneos-arm
-Author: lemin
-Maintainer: lemin
-Description: I am on helium
-
+Version: 3.2.6-1
+Section: Utilities
+Depends: firmware (>= 14.0)
+Architecture: iphoneos-arm64e
+Author: leminlimez, AsakuraFuuko
+Maintainer: Helium RootHide build
+Description: Status bar widgets for RootHide jailbroken iOS devices.

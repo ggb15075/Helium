@@ -3,7 +3,7 @@ name: Build Helium Debug
 on:
   push:
     branches:
-      - "**"
+      - main
     tags:
       - "test"
   pull_request:

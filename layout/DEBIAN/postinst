@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+if [ "${1:-}" = configure ]; then
+    if command -v uicache >/dev/null 2>&1; then
+        uicache -p /Applications/Helium.app || uicache -a || true
+    fi
+    if command -v launchctl >/dev/null 2>&1; then
+        launchctl bootstrap system /Library/LaunchDaemons/com.leemin.helium.plist || true
+    fi
+fi
+
+exit 0

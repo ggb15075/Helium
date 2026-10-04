@@ -53,7 +53,7 @@ $(APPLICATION_NAME)_SWIFTFLAGS += -import-objc-header src/bridging/Helium-Bridgi
 $(APPLICATION_NAME)_FRAMEWORKS += CoreGraphics QuartzCore UIKit Foundation
 $(APPLICATION_NAME)_PRIVATE_FRAMEWORKS += BackBoardServices GraphicsServices IOKit SpringBoardServices
 
-ifeq ($(TARGET_CODESIGN),ldid)
+ifeq ($(notdir $(TARGET_CODESIGN)),ldid)
 $(APPLICATION_NAME)_CODESIGN_FLAGS += -Sent.plist
 else
 $(APPLICATION_NAME)_CODESIGN_FLAGS += --entitlements ent.plist $(TARGET_CODESIGN_FLAGS)
@@ -61,7 +61,11 @@ endif
 
 include $(THEOS_MAKE_PATH)/application.mk
 
+# Payload is only for TrollStore archives. A RootHide .deb must contain only
+# Applications/, Library/ and DEBIAN/ at its root.
+ifneq ($(THEOS_PACKAGE_SCHEME),roothide)
 after-stage::
 	$(ECHO_NOTHING)mkdir -p packages $(THEOS_STAGING_DIR)/Payload$(ECHO_END)
 	$(ECHO_NOTHING)cp -rp $(THEOS_STAGING_DIR)/Applications/Helium.app $(THEOS_STAGING_DIR)/Payload$(ECHO_END)
 	$(ECHO_NOTHING)cd $(THEOS_STAGING_DIR); zip -qr Helium.tipa Payload; cd -;$(ECHO_END)
+endif
