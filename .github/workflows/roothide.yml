@@ -46,9 +46,28 @@ jobs:
           THEOS: ${{ github.workspace }}/theos
         run: sh build-roothide.sh
 
+      - name: Verify RootHide deb
+        run: |
+          set -eu
+          deb=$(find packages -maxdepth 1 -name '*_iphoneos-arm64e.deb' -print -quit)
+          test -n "$deb"
+          test "$(dpkg-deb -f "$deb" Architecture)" = 'iphoneos-arm64e'
+          test "$(dpkg-deb -f "$deb" Version)" = '3.2.6-1'
+          extracted="$RUNNER_TEMP/helium-deb"
+          mkdir -p "$extracted"
+          dpkg-deb -x "$deb" "$extracted"
+          test -x "$extracted/Applications/Helium.app/Helium"
+          test -f "$extracted/Applications/Helium.app/Info.plist"
+          test -f "$extracted/Library/LaunchDaemons/com.leemin.helium.plist"
+          ldid -e "$extracted/Applications/Helium.app/Helium" > "$RUNNER_TEMP/helium-entitlements.plist"
+          for entitlement in platform-application com.apple.private.security.no-sandbox com.apple.private.security.storage.AppBundles com.apple.private.security.storage.AppDataContainers; do
+            grep -q "<key>$entitlement</key>" "$RUNNER_TEMP/helium-entitlements.plist"
+          done
+
       - name: Upload RootHide deb
         uses: actions/upload-artifact@v4
         with:
           name: Helium-RootHide-deb
           path: packages/*_iphoneos-arm64e.deb
           if-no-files-found: error
+
